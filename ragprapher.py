@@ -1,5 +1,6 @@
 from mentalmodel import mentalIllnessData
 from swiftmodel import swiftData
+from spotifymodel import spotifyData
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -23,8 +24,11 @@ def csvRead(path, selection):
                 for lines in csvFile:
                     entry = swiftData(*lines)
                     entries_list.append(entry)
-                    
-        return entries_list
+            if selection == 3:
+                for lines in csvFile:
+                    entry = spotifyData(*lines)
+                    entries_list.append(entry)        
+            return entries_list
     except FileNotFoundError:
         print("File Not Found. Please check file's existence or its path again.")       
         
@@ -87,10 +91,49 @@ def main():
     plt.ylabel("Taylor Swift Video Views")
     plt.scatter(df_2['Year'], df_2['Video Views'])
     plt.savefig("TaylorSwiftChart.png")      
-
-#step 3. merge datasets one and two
+    
+#step 3
+#clean spotify data to top song artist for each year to 2019
 #make dataset 3
-#plot dataset 3
+    path = "./top50Music2010-2019.csv"
+    entry_List = csvRead(path, 3)
+    years = []
+    topArtist = []
+    topPopular = []
+    topArtistYear = []
+    for entry in entry_List:
+        if entry.Year not in years:
+            years.append(entry.Year)
+    for year in years:
+        topArtist.append(" ")
+        topPopular.append(0)
+        topArtistYear.append(" ")
+    for i in range(len(years)):
+        for entry in entry_List:
+            if entry.Year == years[i]:
+                if entry.Popularity > topPopular[i]:
+                    topArtist[i] = entry.Artist
+                    topPopular[i] = entry.Popularity
+    for i in range(len(topArtistYear)):
+        topArtistYear[i] = " ".join((str(years[i]),"\n",topArtist[i]))
+    with open("spotifyDataClean.csv", 'w', errors='ignore',encoding='utf-8', newline='') as file:
+        writer = csv.writer(file)
+        header = ['YearArtist', 'Popularity', 'Year', 'topArtist']
+        writer.writerow(header)
+        for i in range(len(topArtistYear)):
+            writer.writerow([topArtistYear[i], topPopular[i], years[i], topArtist[i]])
+    print(topArtistYear)
+    df3 = pd.read_csv("spotifyDataClean.csv")
+    plt.clf()
+    plt.title("Top Artist of Spotify by year")
+    plt.xlabel("Year/Top Artist")
+    plt.ylabel("Popularity")
+    plt.figure(figsize=(18, 6))
+    plt.scatter(df3['YearArtist'], df3['Popularity'])
+    plt.savefig("SpotifyChart.png")     
+#step 4. merge datasets one and two, one and three
+#merge datasets
+#plot datasets
 #print and heatmap correlation
     plt.clf()
     
@@ -112,6 +155,19 @@ def main():
 
     plt.clf()
     plt.scatter(final_df['Depressive'], final_df['Video Views'])
+    plt.title("Taylor Swift Popularity to Depression")
+    plt.figure(figsize=(18, 6))
     plt.savefig("SwiftDepressionGraph.png")
+    
+    plt.clf()
+    mdf = pd.merge(df, df3, on='Year')
+    fdf = mdf[['YearArtist', 'Depressive']]
+    fdf.dropna()
+    fdf.reindex(axis = 0)
+    plt.figure(figsize=(18, 6))
+    plt.ylabel("Depression DALA")
+    plt.scatter(fdf['YearArtist'], fdf['Depressive'])
+    plt.title("Most famous artist by year to depression DALA")
+    plt.savefig("SpotifyDepressionChart.png")
     
 main()
