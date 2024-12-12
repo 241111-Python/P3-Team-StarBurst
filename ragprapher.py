@@ -131,6 +131,7 @@ def main():
     plt.figure(figsize=(18, 6))
     plt.scatter(df3['YearArtist'], df3['Popularity'])
     plt.savefig("SpotifyChart.png")     
+
 #step 4. merge datasets one and two, one and three
 #merge datasets
 #plot datasets
@@ -152,11 +153,9 @@ def main():
     sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
     plt.title("Taylor Swift and Mental Depression Correlation Heatmap")
     plt.savefig("SwiftDepressionHeatMap.png")
-
-    plt.clf()
+    plt.figure(figsize=(10, 6))
     plt.scatter(final_df['Depressive'], final_df['Video Views'])
     plt.title("Taylor Swift Popularity to Depression")
-    plt.figure(figsize=(18, 6))
     plt.savefig("SwiftDepressionGraph.png")
     
     plt.clf()
